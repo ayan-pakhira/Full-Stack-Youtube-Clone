@@ -10,7 +10,7 @@ dotenv.config({
 //connecting the database by calling the method from db folder
 connectDB()
 //as the database connection method is an async method, then it will return
-//a promise. so for that here also we can define some methods to catch the error
+//a "promise". so for that here also we can define some methods to catch the error
 
 .then(() => {
     app.listen(process.env.PORT || 8000, () => {
