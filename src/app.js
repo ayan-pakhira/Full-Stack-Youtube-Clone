@@ -5,7 +5,8 @@ import cookieParser from 'cookie-parser'
 const app = express()
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN,//here origin means, the origin file, and here
+    //we are allowing it, by declaring it here.
     credentials: true
 }))
 
@@ -14,6 +15,7 @@ app.use(cors({
 //response
 
 //and this is for accepting data in forms of json
+//here limit of accepting the data in json is 16 kb.
 app.use(express.json({limit:"16kb"}))
 
 //to encode the url, like in the url if there is a gap available or other thing
@@ -28,5 +30,8 @@ app.use(express.static("public"))
 //cookie parser - to access and set the cookies in the browser from our server
 //basically performing crud operations on the server on cookies
 app.use(express.cookieParser())
+
+//above five methods are the way of configuring the express in the server.
+//these steps has to be followed in the production grade project also. 
 
 export { app } 
