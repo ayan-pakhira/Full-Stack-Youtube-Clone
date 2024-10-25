@@ -34,4 +34,21 @@ app.use(express.cookieParser())
 //above five methods are the way of configuring the express in the server.
 //these steps has to be followed in the production grade project also. 
 
+//*****routes ******//
+import userRouter from './routes/user.router.js'
+//as we can see that this 'userRouter' is not declared in any file but still we are
+//importing it, the reason is, as the export is default from user.routes.js file, we can 
+//give any name during the import
+
+
+
+//"router declarations"
+//as we know for controlling the routes we generally use app.get and
+//inside of that we provide the routes and also the server response
+//but here as we have differentiate the routes and the server response
+//so we have to pass it through the middleware 
+app.use("/api/v1/users", userRouter)
+
+
+
 export { app } 
