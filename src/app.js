@@ -29,13 +29,13 @@ app.use(express.static("public"))
 
 //cookie parser - to access and set the cookies in the browser from our server
 //basically performing crud operations on the server on cookies
-app.use(express.cookieParser())
+app.use(cookieParser())
 
 //above five methods are the way of configuring the express in the server.
 //these steps has to be followed in the production grade project also. 
 
 //*****routes ******//
-import userRouter from './routes/user.router.js'
+import userRouter from './routes/user.routes.js'
 //as we can see that this 'userRouter' is not declared in any file but still we are
 //importing it, the reason is, as the export is default from user.routes.js file, we can 
 //give any name during the import
