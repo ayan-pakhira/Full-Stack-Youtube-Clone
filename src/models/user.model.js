@@ -56,7 +56,7 @@ const userSchema = new Schema(
 //which will actually secure the password and refresh token just before the loading.
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 //why we have used the above code - reason is mentioned below.
