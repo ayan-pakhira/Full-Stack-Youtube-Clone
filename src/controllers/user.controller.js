@@ -22,6 +22,8 @@ const registerUser = asyncHandler(async (req, res) => {
   //1. --get the user details
   const { email, username, fullname, password } =req.body
   console.log("email: " + email);
+  console.log("username: " + username)
+  console.log("fullname: " + fullname)
 
     //2.- checking validation for any empty fields -- this is beginner friendly
     //   if(fullname == ""){
@@ -43,7 +45,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
    //3. --checking if the user is already exists thorugh the username, email
    //fullname
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }, { fullname }]
    })
 
