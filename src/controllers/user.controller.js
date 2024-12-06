@@ -57,27 +57,27 @@ const registerUser = asyncHandler(async (req, res) => {
    // --points to focus on that, req.body can be used in case of accepting data
    // from such as, username or email, but for images we have to use files, as they
    //will be uploaded as file
-   const avatarLocalPath = req.files?.avatar[0]?.path
-   const imageLocalPath = req.files?.coverImage[0]?.path
+  //  const avatarLocalPath = req.files?.avatar[0]?.path
+    const imageLocalPath = req.files?.coverImage[0]?.path
 
  //checking validation for avatar
-   if(!avatarLocalPath){
-    throw new ApiError(400, "avatar file is required")
-   }
+  //  if(!avatarLocalPath){
+  //   throw new ApiError(400, "avatar file is required")
+  //  }
 
-   //5. --upload them to cloudinary
-   const avatar = await uploadOnCloudinary(avatarLocalPath)
-   const coverImage = await uploadOnCloudinary(imageLocalPath)
+  //  //5. --upload them to cloudinary
+  //  const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(imageLocalPath)
 
-   //checking validation for cover image and avatar file
-   if(!avatar){
-    throw new ApiError(400, "avatar field is required")
-   }
+  //  //checking validation for cover image and avatar file
+    if(!coverImage){
+     throw new ApiError(400, "cover image field is required")
+    }
 
    //6. create object and entry to db.
    const user = await User.create({
     fullname,
-    avatar: avatar.url,
+    //avatar: avatar.url,
     coverImage: coverImage?.url || " ",
     email,
     password,
