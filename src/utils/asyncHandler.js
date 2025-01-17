@@ -5,7 +5,7 @@ const asyncHandler = (requestHandler) => {
     }
 }
 //in the above code we are doing this with the promise. 
- 
+
 
 export {asyncHandler}
 

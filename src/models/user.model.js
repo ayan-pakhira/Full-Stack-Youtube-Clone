@@ -26,11 +26,11 @@ const userSchema = new Schema(
       trim: true,
       index: true,
     },
-    // avatar: {
-    //   type: String, //we will use the url of cloudnary, where the images of
-    //   //avatar will be stored.
-    //   required: true,
-    // },
+    avatar: {
+      type: String, //we will use the url of cloudnary, where the images of
+      //avatar will be stored.
+      required: true,
+    },
     coverImage: {
        type: String, //cloudnary url
        default: " ",
