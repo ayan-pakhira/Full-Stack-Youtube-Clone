@@ -21,6 +21,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //1. --get the user details
   const { email, username, fullname, password } =req.body //need to check this by printing it in console, to check that how object actually comes.
+  //also need to check that "why this 'body' is written"
   console.log("email: " + email);
   console.log("username: " + username)
   console.log("fullname: " + fullname)
@@ -57,9 +58,18 @@ const registerUser = asyncHandler(async (req, res) => {
    // --points to focus on that, req.body can be used in case of accepting data
    // from such as, username or email, but for images we have to use files, as they
    //will be uploaded as file
-   const avatarLocalPath = req.files?.avatar[0]?.path
+   const avatarLocalPath = req.files?.avatar[0]?.path //why do we need to find the local path for images.
    const imageLocalPath = req.files?.coverImage[0]?.path
    //need to check this req.files? by printing it in the console, simply do console.log for it
+
+   //simplified code of the previous code snippets:
+
+  //  let coverImageLocalPath;
+  //  if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+  //     coverImageLocalPath = req.files.coverImage[0].path
+  //   }
+  //we can either write this code or the previous code, both means the same, but previous is advanced one.
+
 
  //checking validation for avatar
    if(!avatarLocalPath){
