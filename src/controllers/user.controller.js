@@ -4,6 +4,26 @@ import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 
+const generateAccessAndRefreshTokens = async (userId) => {
+  try{
+   const user = await User.findById(userId)
+   const accessToken = user.generateAccessToken();
+   const refreshToken = user.generateRefreshToken();
+
+   //uploading the refresh token to the database
+   user.refreshTOken = refreshToken;
+   await user.save({validateBeforeSave: false});
+   //all these things are related to mongoose and mongodb, cause all this are coming from there.
+
+   return {accessToken, refreshToken};
+
+
+
+  }catch(error){
+    throw new ApiError(500, "Error in generating tokens")
+  }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
     //****"following are the steps to follow to create register controller"**
 
@@ -118,5 +138,124 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
+const loginUser = asyncHandler(async (req, res) => {
 
-export { registerUser } 
+  //todo: to login the user
+  //1. bring data from the request body.
+  //2. username or email
+  //3. find the user
+  //4. password check - now if password checked
+  //5. generate access and refresh tokens and send to the user.
+  //6. send cookies and send a success response.
+
+  const {email, username, password} = req.body
+  console.log(email)
+  console.log(username)
+
+  if(!username || !email){
+    throw new ApiError(400, "username or email is required")
+  }
+ //
+ const user = await User.findOne({
+    $or: [{username}, {email}] //this 'or' operator is coming from mongodb server
+    //for this case "user" is in capital letters, as this are the object of mongoose or mongodb,
+    //other 'user' which is in small letters, they are the normal object which we have created and working with.
+    //also the instance of the mongodb object.
+  })
+
+  if(!user){
+    throw new ApiError(404, "user not found");
+  }
+ //from the comment down // these two code is for finding the user and and giving a message if user is not found.
+
+
+ //password check
+ const isPasswordValid = await user.isPasswordCorrect(password)
+
+ if(!isPasswordValid){
+  throw new ApiError(401, "password is incorrect")
+ }
+
+  //generate tokens cause the user password is correct
+  const {accessToken, refreshTOken} = await generateAccessAndRefreshTokens(user._id) //why the id is written in this is not cleared
+
+  //to restrict the tokens and passwords from returing to the user.
+  const loggedInUser = await User.findById(user._id).
+  select("-password -refreshToken")
+
+
+  //sending the cookies and success response
+  const options ={
+    httpOnly: true,
+    secure: true
+    //cookies can be edited by default in frontend, so we have to make it secure, 
+    //that is why we have to keep this setting as 'true'.
+    //now this will only be modified from the server side.
+  }
+
+  return res
+  .status(200)
+  .cookie("accessToken", accessToken, options)
+  .cookie("refreshToken", refreshToken, options)
+  .json(
+    new ApiResponse(200, 
+      {
+        user: loggedInUser, accessToken, refreshToken
+      },
+      "successfully logged in"
+    )
+    //in this case, "loggedInUser" is the user object which we have selected,
+    //to exclude the password and refreshToken from the response.
+ 
+  )
+
+  
+
+
+
+
+})
+
+
+//logout user
+const logoutUser = asyncHandler(async(req, re) => {
+
+  //this is to logout user
+  //1. remove cookies from the user's browser
+  //2. update the user's refresh token to null in the database
+  //3. send a success response
+
+  await User.findByIdAndUpdate(req.user._id, {
+    $set:{
+      refreshToken: undefined
+    }
+  },
+  {
+    new: true
+  }
+
+  const options ={
+    httpOnly: true,
+    secure: true
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new ApiResponse(200, {}, "user logged out"))
+
+)
+
+
+
+
+  
+})
+
+
+
+
+
+
+export { registerUser, loginUser, logoutUser } 
