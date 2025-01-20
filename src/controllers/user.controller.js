@@ -3,6 +3,7 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
+import jwt from "jsonwebtoken"
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try{
@@ -11,7 +12,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
    const refreshToken = user.generateRefreshToken();
 
    //uploading the refresh token to the database
-   user.refreshTOken = refreshToken;
+   user.refreshToken = refreshToken;
    await user.save({validateBeforeSave: false});
    //all these things are related to mongoose and mongodb, cause all this are coming from there.
 
@@ -152,7 +153,7 @@ const loginUser = asyncHandler(async (req, res) => {
   console.log(email)
   console.log(username)
 
-  if(!username || !email){
+  if(!username && !email){
     throw new ApiError(400, "username or email is required")
   }
  //
@@ -177,7 +178,7 @@ const loginUser = asyncHandler(async (req, res) => {
  }
 
   //generate tokens cause the user password is correct
-  const {accessToken, refreshTOken} = await generateAccessAndRefreshTokens(user._id) //why the id is written in this is not cleared
+  const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id) //why the id is written in this is not cleared
 
   //to restrict the tokens and passwords from returing to the user.
   const loggedInUser = await User.findById(user._id).
@@ -218,7 +219,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 
 //logout user
-const logoutUser = asyncHandler(async(req, re) => {
+const logoutUser = asyncHandler(async(req, res) => {
 
   //this is to logout user
   //1. remove cookies from the user's browser
@@ -232,9 +233,9 @@ const logoutUser = asyncHandler(async(req, re) => {
   },
   {
     new: true
-  }
+  })
 
-  const options ={
+  const options = {
     httpOnly: true,
     secure: true
   }
@@ -245,17 +246,63 @@ const logoutUser = asyncHandler(async(req, re) => {
   .clearCookie("refreshToken", options)
   .json(new ApiResponse(200, {}, "user logged out"))
 
-)
+})
 
+const refreshAccessToken = asyncHandler(async(req, res) => {
+  //this is to refresh the access token
+  //1. get the refresh token from the request
+  //2. validate the refresh token
+  //3. generate a new access token
+  //4. send the new access token to the user
 
+  const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
 
+  if(!incomingRefreshToken){
+    throw new ApiError(401, "invalid refresh token")
+  }
 
+  try {
+    const decodedRefreshToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
   
+    //accessing the user from database through the id which mentioned in the models while generating refresh token
+    const user = await User.findById(decodedRefreshToken?._id)
+  
+    if(!user){
+      throw new ApiError(404, "invalid refresh token")
+    }
+  
+    //now the user is found and the refresh token is valid,
+    //then generate a new access token and update the refresh token in the database
+  
+    if(incomingRefreshToken !== user?.refreshToken){
+      throw new ApiError(401, "invalid refresh token")
+    }
+  
+    const options = {
+      httpOnly: true,
+      secure: true
+    }
+  
+    const {accessToken, neWrefreshToken} = await generateAccessAndRefreshTokens(user._id)
+  
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken",neWrefreshToken, options)
+    .json{
+      new ApiResponse(200, 
+        {
+          accessToken, 
+          neWrefreshToken
+        }, 
+      "accessToken refreshed successfully")
+    }
+  } catch (error) {
+    throw new ApiError(401, error?.message || "invalid refresh token")
+  }
+
+
 })
 
 
-
-
-
-
-export { registerUser, loginUser, logoutUser } 
+export { registerUser, loginUser, logoutUser, refreshAccessToken } 
